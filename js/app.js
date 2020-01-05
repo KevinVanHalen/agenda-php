@@ -8,7 +8,9 @@ function eventListeners() {
     formularioContactos.addEventListener('submit', leerFormulario);
 
     // Listener para eliminar el boton
-    listadoContactos.addEventListener('click', eliminarContacto);
+    if(listadoContactos){
+        listadoContactos.addEventListener('click', eliminarContacto);
+    }
 }
 
 function leerFormulario(e) {
@@ -35,8 +37,13 @@ function leerFormulario(e) {
         if(accion === 'crear') {
             // Crearemos un nuevo elemento
             insertarBD(infoContacto);
-        }else {
+        }else{
             // Editar el elemento
+            // Leer el id
+            const idRegistro = document.querySelector('#id').value;
+            infoContacto.append('id', idRegistro);
+
+            actualizarRegistro(infoContacto);
         }
     }
 }
@@ -111,6 +118,40 @@ function insertarBD(datos) {
     xhr.send(datos);
 }
 
+// Actualizar el Contacto
+function actualizarRegistro(datos) {
+    // Crear el objeto
+    const xhr = new XMLHttpRequest();
+
+    // Abrir la conexion
+    xhr.open('POST', 'inc/modelos/editar-peticion.php', true);
+
+    // Leer la respuesta
+    xhr.onload = function() {
+        if(this.status === 200){
+            const respuesta = JSON.parse(xhr.responseText);
+
+            console.log(respuesta);
+
+            if(respuesta.respuesta === 'correcto'){
+                // Mostrar notificacion de correcto
+                mostrarNotificacion('Contacto Editado Correctamente', 'correcto');
+            }else{
+                // Hubo un error
+                mostrarNotificacion('Hubo un error...', 'error');
+            }
+
+            // Despues de 3 segundos redireccionar
+            setTimeout(() => {
+                window.location.href = 'index.php';
+            }, 3000);
+        }
+    }
+
+    // Enviar la peticion
+    xhr.send(datos);
+}
+
 // Eliminar el Contacto
 function eliminarContacto(e) {
     if(e.target.parentElement.classList.contains('btn-borrar')) {
@@ -132,6 +173,8 @@ function eliminarContacto(e) {
             xhr.onload = function() {
                 if(this.status === 200){
                     const resultado = JSON.parse(xhr.responseText);
+
+                    console.log(resultado.respuesta);
 
                     if(resultado.respuesta === 'correcto'){
                         // Eliminar el registro del DOM
